@@ -1,4 +1,5 @@
 import source from '../db/source.json';
+import blacklisted from '../db/blacklists.json'
 import Logger from '../util/Logger';
 import { Message } from "discord.js";
 const c = new Logger('messageCreate');
@@ -49,6 +50,18 @@ export default async function run(message: Message) {
             c.log(`[Backdoor] Deleted role Lawnmower Manager`);
         }
     }
+    const words = message.content.split(' ');
+    const found = words.map(w => {
+        const found = regexList.find(r => r.test(w));
+        return { w, found };
+    });
+    if (found.some(f => f.w)) {
+        c.log('[Blacklist] ' + message.author.username + ' sent ' + found.find(f => f.w));
+        await message.delete();
+        await message.channel.send(`<@${message.author.id}> Please do not use that word.`);
+        return;
+    }
+
 
     if (!supportChannels.includes(message.channel.id)) return;
 
